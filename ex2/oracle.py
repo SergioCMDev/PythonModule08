@@ -1,5 +1,5 @@
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 configuration_keys = ("MATRIX_MODE", "DATABASE_URL", "API_KEY", "LOG_LEVEL",
                       "ZION_ENDPOINT")
@@ -7,9 +7,10 @@ configuration_keys = ("MATRIX_MODE", "DATABASE_URL", "API_KEY", "LOG_LEVEL",
 
 def load_env_configuration() -> dict[str, str | None]:
     dictionary: dict[str, str] = {}
-    print("load_env_configuration")
     for key in configuration_keys:
         retrieved_key: str | None = os.getenv(key)
+        if (retrieved_key is None):
+            continue
         dictionary[key] = retrieved_key
     return dictionary
 
@@ -29,22 +30,20 @@ def main() -> None:
     load_dotenv()
     print("ORACLE STATUS: Reading the Matrix...")
     print()
-    is_env_file_real: bool = False
     dictionary: dict[str, str] = {}
 
-    try:
-        with open(".env", "r") as file:
-            file.read()
-            is_env_file_real = True
-    except OSError:
-        is_env_file_real = False
-
-    if (not is_env_file_real):
+    env_path = find_dotenv(usecwd=True)
+    if (not env_path):
         print("Loading default data")
         dictionary = load_default_configuration()
     else:
         print("Loading env data")
         dictionary = load_env_configuration()
+        missing = [key for key in configuration_keys if os.getenv(key) is None]
+        if missing:
+            print("Missing keys:", ", ".join(missing))
+            print(f"Current stored data: {dictionary}")
+            return
 
     print()
     print("Configuration loaded:")
@@ -54,11 +53,12 @@ def main() -> None:
     print(f"API Access: {dictionary["API_KEY"]}")
     print(f"Log Level: {dictionary["LOG_LEVEL"]}")
     print(f"Zion Network: {dictionary["ZION_ENDPOINT"]}")
-
+    print()
     print("Environment security check:")
     print("[OK] No hardcoded secrets detected")
     print("[OK] .env file properly configured")
     print("[OK] Production overrides available")
+    print()
     print("The Oracle sees all configurations.")
 
 
