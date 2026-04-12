@@ -1,0 +1,3 @@
+venv/*
+.env
+matrix_analysis.png
