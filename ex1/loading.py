@@ -1,6 +1,7 @@
 from importlib.metadata import version, PackageNotFoundError
 from importlib import import_module
-import tomllib
+import re
+
 
 deps = {
     "pandas": "Data manipulation ready",
@@ -74,39 +75,58 @@ def get_requirements_data() -> dict[str, str] | None:
             return None
     for line in lines:
         line = line.strip()
-        parts: list[str] = line.split("=")
+        parts: list[str] = line.split("==")
         dict_versions[parts[0]] = parts[1]
     return dict_versions
 
 
 def get_pyproject_data() -> dict[str, str] | None:
     dict_versions: dict[str, str] = {}
-    with open(pyproject_file, "r+b") as file:
-        try:
-            data = tomllib.load(file)
-        except FileNotFoundError as e:
-            print(f"{e}")
-            return None
-    if (not data):
+    try:
+        with open(pyproject_file, "r") as file:
+            content = file.read()
+            deps_match = re.search(r'dependencies\s*=\s*\[(.*?)\]', content, re.DOTALL)
+            if not deps_match:
+                return None
+
+            deps_text = deps_match.group(1)
+            matches = re.findall(r'"([^" ]+)==([^" ]+)"', deps_text)
+
+            for pkg, ver in matches:
+                dict_versions[pkg] = ver
+
+        return dict_versions if dict_versions else None
+
+    except FileNotFoundError as e:
+        print(f"{e}")
         return None
-    for line in data["project"]["dependencies"]:
-        line = line.strip()
-        parts: list[str] = line.split("==")
-        dict_versions[parts[0]] = parts[1]
-    return dict_versions
 
 
 def run_analysis() -> None:
     import numpy as np
     import matplotlib.pyplot as plt
+    import pandas as pd
 
     print("Analyzing Matrix data...")
     print(f"Processing {data_points_count} data points...")
     print("Generating visualization..")
     print()
-    print("Analysis complete!")
+
     data = np.random.normal(loc=0.0, scale=1.0, size=data_points_count)
-    plt.plot(data[:100])
+    df = pd.DataFrame({
+        'values': data,
+        'index': range(data_points_count)
+    })
+
+    print(f"Media: {df['values'].mean():.4f}")
+    print(f"Desv. Est: {df['values'].std():.4f}")
+    print(f"Mín: {df['values'].min():.4f}")
+    print(f"Máx: {df['values'].max():.4f}")
+    print()
+
+    print("Analysis complete!")
+
+    plt.plot(df['values'][:100])
     print(f"Results saved to: {filename}")
     plt.savefig(filename)
 
@@ -139,7 +159,8 @@ def main() -> None:
         print("Requirements is not valid")
         return
     dict_versions_pyproject = get_pyproject_data()
-    if (dict_versions_pyproject is None):
+    if (dict_versions_pyproject is None
+        and dict_versions_requirements is None):
         print("Pyproject is not valid")
         return
 
