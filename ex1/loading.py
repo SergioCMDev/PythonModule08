@@ -85,7 +85,8 @@ def get_pyproject_data() -> dict[str, str] | None:
     try:
         with open(pyproject_file, "r") as file:
             content = file.read()
-            deps_match = re.search(r'dependencies\s*=\s*\[(.*?)\]', content, re.DOTALL)
+            deps_match = re.search(r'dependencies\s*=\s*\[(.*?)\]', content,
+                                   re.DOTALL)
             if not deps_match:
                 return None
 
@@ -160,7 +161,7 @@ def main() -> None:
         return
     dict_versions_pyproject = get_pyproject_data()
     if (dict_versions_pyproject is None
-        and dict_versions_requirements is None):
+            and dict_versions_requirements is None):
         print("Pyproject is not valid")
         return
 

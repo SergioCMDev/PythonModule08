@@ -17,11 +17,11 @@ def load_env_configuration() -> dict[str, str | None]:
 
 def load_default_configuration() -> dict[str, str | None]:
     dictionary: dict[str, str] = {}
-    dictionary["MATRIX_MODE"] = "development"
-    dictionary["DATABASE_URL"] = "local"
-    dictionary["API_KEY"] = "restricted"
-    dictionary["LOG_LEVEL"] = "DEBUG"
-    dictionary["ZION_ENDPOINT"] = "local"
+    dictionary['MATRIX_MODE'] = "development"
+    dictionary['DATABASE_URL'] = "local"
+    dictionary['API_KEY'] = "restricted"
+    dictionary['LOG_LEVEL'] = "DEBUG"
+    dictionary['ZION_ENDPOINT'] = "local"
 
     return dictionary
 
